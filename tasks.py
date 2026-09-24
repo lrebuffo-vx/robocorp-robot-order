@@ -115,4 +115,4 @@ def archive_receipts():
     """Creates a ZIP archive of the receipts and the images"""
     os.makedirs("./archive", exist_ok=True)
     archive = Archive()
-    archive.archive_folder_with_zip(source_folder="./receipts", target_path="./archive/receipts.zip")
+    archive.archive_folder_with_zip(folder="./receipts", archive_name="./archive/receipts.zip")
