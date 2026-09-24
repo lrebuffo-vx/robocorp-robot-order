@@ -1,56 +1,57 @@
-# Template: Python - Minimal
+# RobotSpareBin – Pedido automático de robots
 
-This template leverages the new [Python framework](https://github.com/robocorp/robocorp), the [libraries](https://github.com/robocorp/robocorp/blob/master/README.md#packages) from to same project as well.
+Automatización RPA en Python con [Robocorp](https://github.com/robocorp/robocorp) que carga pedidos de robots en el sitio de práctica [RobotSpareBin Industries](https://robotsparebinindustries.com/#/robot-order) y guarda un comprobante PDF de cada uno.
 
-The template provides you with the basic structure of a Python project: logging out of the box and controlling your tasks without fiddling with the base Python stuff. The environment contains the most used libraries, so you do not have to start thinking about those right away.
+## Qué hace
 
-👉 Other templates are available as well via our tooling and on our [Portal](https://robocorp.com/portal/tag/template)
+1. **Descarga los pedidos** desde `https://robotsparebinindustries.com/orders.csv`. Cada fila trae el número de pedido, la cabeza, el cuerpo, las piernas y la dirección.
+2. **Abre el sitio** y cierra el modal de aviso que aparece al entrar.
+3. **Por cada pedido:**
+   - Completa el formulario: cabeza (lista desplegable), cuerpo (radio button), piernas (número de pieza) y dirección.
+   - Hace clic en **Preview** y después en **Order**. El sitio falla al azar al enviar el pedido, así que el robot reintenta hasta 10 veces, hasta que aparece el recibo.
+   - Guarda el recibo como PDF en `receipts/receipt_<n>.pdf`.
+   - Saca una captura de la vista previa del robot en `images/robot_<n>.png`.
+   - Agrega esa captura como página nueva al final del PDF del recibo.
+   - Hace clic en **Order another robot** y vuelve a cerrar el modal.
+4. **Comprime los recibos y las imágenes** en un ZIP dentro de `archive/`.
 
-## Running
+Cada paso queda registrado con `robocorp.log`. Los mensajes se ven en `output/log.html` al terminar.
 
-### VS Code
+## Estructura
 
-1. Get [Sema4.ai SDK](https://sema4.ai/docs/automation/visual-studio-code/extension-features) -extension for VS Code.
-2. You'll get an easy-to-use side panel and powerful command-palette commands for running, debugging, code completion, docs, etc.
+| Archivo | Contenido |
+|---|---|
+| `tasks.py` | La tarea `order_robots_from_RobotSpareBin` y las funciones de cada paso |
+| `conda.yaml` | Entorno: Python 3.13, `robocorp`, `robocorp-browser` y `rpaframework` |
+| `robot.yaml` | Configuración del robot para RCC / Sema4.ai |
 
-## Results
+Las librerías que usa:
 
-🚀 After running the bot, check out the `log.html` under the `output` -folder.
+- `robocorp.browser` (Playwright) para navegar, completar el formulario y sacar capturas.
+- `RPA.HTTP` para descargar el CSV.
+- `RPA.PDF` para convertir el recibo a PDF y agregarle la imagen.
 
-## Dependencies
+## Cómo ejecutarlo
 
-We strongly recommend getting familiar with adding your dependencies in [conda.yaml](conda.yaml) to control your Python dependencies and the whole Python environment for your automation.
+**Con VS Code:** instalá la extensión [Sema4.ai SDK](https://sema4.ai/docs/automation/visual-studio-code/extension-features), abrí la carpeta y ejecutá la tarea **Run Task** desde el panel lateral. La extensión arma el entorno de `conda.yaml` sola.
 
-<details>
-  <summary>🙋‍♂️ "Why not just pip install...?"</summary>
+**Con RCC** desde la terminal:
 
-Think of [conda.yaml](conda.yaml) as an equivalent of the requirements.txt, but much better. 👩‍💻 With `conda.yaml`, you are not just controlling your PyPI dependencies; you control the complete Python environment, which makes things repeatable and easy.
+```
+rcc run
+```
 
-👉 You will probably need to run your code on another machine quite soon, so by using `conda.yaml`:
+## Resultados
 
-- You can avoid `Works on my machine` -cases
-- You do not need to manage Python installations on all the machines
-- You can control exactly which version of Python your automation will run on
-  - You'll also control the pip version to avoid dep. resolution changes
-- No need for venv, pyenv, ... tooling and knowledge sharing inside your team.
-- Define dependencies in conda.yaml, let our tooling do the heavy lifting.
-- You get all the content of [conda-forge](https://prefix.dev/channels/conda-forge) without any extra tooling
+| Carpeta | Contenido |
+|---|---|
+| `receipts/` | Un PDF por pedido, con el recibo y la imagen del robot |
+| `images/` | Las capturas de cada robot |
+| `archive/` | El ZIP con los recibos y las imágenes |
+| `output/` | `log.html` con el detalle de la ejecución |
 
-> Dive deeper with [these](https://github.com/robocorp/rcc/blob/master/docs/recipes.md#what-is-in-condayaml) resources.
+Ninguna de estas carpetas se sube al repositorio (están en `.gitignore`).
 
-</details>
-<br/>
+## Pendiente
 
-> The full power of [rpaframework](https://robocorp.com/docs/python/rpa-framework) -libraries is also available on Python as a backup while we implement the new Python libraries.
-
-## What now?
-
-🚀 Now, go get'em
-
-Start writing Python and remember that the AI/LLM's out there are getting really good and creating Python code specifically.
-
-For more information, do not forget to check out the following:
-
-- [Robocorp Documentation -site](https://robocorp.com/docs)
-- [Portal for more examples](https://robocorp.com/portal)
-- Follow our main [robocorp -repository](https://github.com/robocorp/robocorp) as it is the main location where we developed the libraries and the framework.
+- `archive_receipts()` usa `PDF().create_zip_archive`, un método que `RPA.PDF` no tiene, así que el último paso falla. Hay que reemplazarlo por `RPA.Archive` (`archive_folder_with_zip`).
