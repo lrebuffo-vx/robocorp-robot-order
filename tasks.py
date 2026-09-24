@@ -4,6 +4,7 @@ from robocorp.tasks import task
 from robocorp import browser, log
 from RPA.HTTP import HTTP
 from RPA.PDF import PDF
+from RPA.Archive import Archive
 
 @task
 def order_robots_from_RobotSpareBin ():
@@ -113,9 +114,5 @@ def embed_screenshot_to_receipt(screenshot, pdf_file):
 def archive_receipts():
     """Creates a ZIP archive of the receipts and the images"""
     os.makedirs("./archive", exist_ok=True)
-    pdf = PDF()
-    pdf.create_zip_archive(
-        files=["./receipts", "./images"],
-        target="./archive/robot_orders.zip",
-        overwrite=True,
-    )
+    archive = Archive()
+    archive.archive_folder_with_zip(source_folder="./receipts", target_path="./archive/receipts.zip")
